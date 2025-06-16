@@ -88,20 +88,21 @@ const sugarChartData = {
 // Screen width for chart
 const screenWidth = Dimensions.get('window').width - 32; // Adjust for padding
 
-// Chart config
-const chartConfig = {
-  backgroundGradientFrom: '#FFFFFF',
-  backgroundGradientTo: '#FFFFFF',
-  decimalPlaces: 0,
-  color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-  labelColor: (opacity = 0.6) => `rgba(0, 0, 0, ${opacity})`,
-  style: {
-    borderRadius: 16,
-  },
-  propsForDots: {
-    r: '4',
-    strokeWidth: '2',
-  },
+// Utility function to convert hex to RGB
+const hexToRgb = (hex: string): [number, number, number] => {
+  // Remove # if present
+  const cleanHex = hex.replace('#', '');
+  
+  // Handle 3-digit hex codes
+  const fullHex = cleanHex.length === 3 
+    ? cleanHex.split('').map(char => char + char).join('')
+    : cleanHex;
+  
+  const r = parseInt(fullHex.substring(0, 2), 16);
+  const g = parseInt(fullHex.substring(2, 4), 16);
+  const b = parseInt(fullHex.substring(4, 6), 16);
+  
+  return [r, g, b];
 };
 
 export default function VitalsScreen() {
@@ -181,6 +182,26 @@ export default function VitalsScreen() {
       default:
         return 'Blood Pressure';
     }
+  };
+
+  // Create chart config with proper color handling
+  const getChartConfig = () => {
+    const [r, g, b] = hexToRgb(colors.text);
+    
+    return {
+      backgroundGradientFrom: colors.card,
+      backgroundGradientTo: colors.card,
+      decimalPlaces: 0,
+      color: (opacity = 1) => `rgba(${r}, ${g}, ${b}, ${opacity})`,
+      labelColor: (opacity = 0.6) => `rgba(${r}, ${g}, ${b}, ${opacity})`,
+      style: {
+        borderRadius: 16,
+      },
+      propsForDots: {
+        r: '4',
+        strokeWidth: '2',
+      },
+    };
   };
   
   return (
@@ -305,13 +326,7 @@ export default function VitalsScreen() {
               data={getChartData()}
               width={screenWidth - 32} // Adjust for card padding
               height={220}
-              chartConfig={{
-                ...chartConfig,
-                backgroundGradientFrom: colors.card,
-                backgroundGradientTo: colors.card,
-                color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                labelColor: (opacity = 0.6) => `rgba(${colors.text === '#FFFFFF' ? '255, 255, 255' : '0, 0, 0'}, ${opacity})`,
-              }}
+              chartConfig={getChartConfig()}
               bezier
               style={styles.chart}
               withInnerLines={false}
